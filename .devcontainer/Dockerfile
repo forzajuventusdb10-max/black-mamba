@@ -92,10 +92,10 @@ set -e
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 
-# Check if already configured
 if [ -f /etc/config.json ] && [ -f /app/uuid.txt ] && [ -f /app/selected_ip.txt ]; then
     echo -e "${GREEN}✅ Already configured. Starting Xray...${NC}"
     /usr/local/bin/xray -c /etc/config.json > /tmp/xray.log 2>&1 &
+    sleep 2
     /app/verify.sh
     tail -f /tmp/xray.log
     exit 0
@@ -103,28 +103,14 @@ fi
 
 echo ""
 echo "========================================="
-echo "🌐 GH TUN SETUP"
+echo "🌐 GH TUN SETUP (Auto mode for Codespaces)"
 echo "========================================="
 echo ""
-echo "Based on your local ping test earlier, which server was reachable?"
-echo ""
-echo "  1) Germany  - 94.130.50.12"
-echo "  2) USA      - 63.141.252.203"
-echo "  3) Ireland - 50.7.5.83"
-echo ""
 
-while true; do
-    read -p "Enter choice [1-3]: " choice
-    case $choice in
-        1) SELECTED_IP="94.130.50.12"; SELECTED_NAME="Germany"; break;;
-        2) SELECTED_IP="63.141.252.203"; SELECTED_NAME="USA"; break;;
-        3) SELECTED_IP="50.7.5.83"; SELECTED_NAME="Netherlands"; break;;
-        *) echo -e "${RED}Invalid choice. Try again.${NC}";;
-    esac
-done
+SELECTED_IP="94.130.50.12"
+SELECTED_NAME="Germany"
 
-echo ""
-echo -e "${GREEN}✓ Selected: ${SELECTED_NAME} (${SELECTED_IP})${NC}"
+echo -e "${GREEN}✓ Auto-selected: ${SELECTED_NAME} (${SELECTED_IP})${NC}"
 
 UUID=$(cat /proc/sys/kernel/random/uuid)
 echo "$UUID" > /app/uuid.txt
@@ -170,6 +156,4 @@ RUN cat > /etc/logrotate.d/xray <<'LOGROTEOF'
 }
 LOGROTEOF
 
-RUN sed -i '/vless:\/\//d' /etc/bash.bashrc 2>/dev/null || true
-
-ENTRYPOINT ["/bin/bash", "-c", "/app/start.sh & exec \"$@\"", "--"]
+CMD ["/app/start.sh"]
